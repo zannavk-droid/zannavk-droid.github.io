@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<!-- saved from url=(0189)file:///D:/1%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81/HTML/%D0%B1%D1%80%D0%B5%D0%B9%D0%BD-%D1%80%D0%B8%D0%BD%D0%B3%20%D0%B6%D0%B8%D0%B2%D0%BE%D1%82%D0%BD%D1%8B%D0%B5%20%D0%BB%D0%B5%D1%81%D0%B0.html -->
+<html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌲 Брейн-ринг: Животные леса 🦊</title>
+<style>
+  /* ===== ОБЩИЕ СТИЛИ ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --orange: #ff8c42;
+    --green: #4caf50;
+    --yellow: #ffd93d;
+    --blue: #4a90e2;
+    --pink: #ff6b9d;
+    --purple: #9b59b6;
+    --dark: #2c3e50;
+    --light: #fff8e7;
+  }
+
+  body {
+    font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #74b9ff 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Канвас для конфетти поверх всего */
+  #confettiCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ===== КОНТЕЙНЕР ИГРЫ ===== */
+  .game-container {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== ЭКРАНЫ ===== */
+  .screen {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== ЗАГОЛОВКИ ===== */
+  h1 {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    color: var(--dark);
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0 var(--yellow);
+  }
+  h2 {
+    font-size: clamp(1.3rem, 3.5vw, 2rem);
+    color: var(--dark);
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    color: #555;
+    margin-bottom: 25px;
+  }
+
+  /* ===== КНОПКИ ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 30px;
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    font-weight: bold;
+    font-family: inherit;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.1);
+    color: white;
+    min-height: 60px;
+  }
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 9px 0 rgba(0,0,0,0.15), 0 12px 25px rgba(0,0,0,0.15);
+  }
+  .btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  .btn-primary { background: linear-gradient(135deg, var(--orange), #ff6b1a); }
+  .btn-success { background: linear-gradient(135deg, var(--green), #2e8b3d); }
+  .btn-info    { background: linear-gradient(135deg, var(--blue), #2c6fd1); }
+  .btn-warning { background: linear-gradient(135deg, var(--yellow), #f0b400); color: var(--dark); }
+  .btn-pink    { background: linear-gradient(135deg, var(--pink), #e84393); }
+
+  .btn-block { width: 100%; }
+
+  /* ===== ПОЛЯ ВВОДА ===== */
+  .input-group {
+    margin-bottom: 20px;
+  }
+  .input-group label {
+    display: block;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-weight: bold;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-family: inherit;
+    border: 3px solid var(--blue);
+    border-radius: 15px;
+    background: white;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--orange);
+  }
+
+  /* ===== ПАНЕЛЬ КОМАНД ===== */
+  .teams-panel {
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+  .team-card {
+    flex: 1;
+    min-width: 200px;
+    padding: 15px;
+    border-radius: 20px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  }
+  .team-card.team-0 { background: linear-gradient(135deg, var(--orange), #ff6b1a); }
+  .team-card.team-1 { background: linear-gradient(135deg, var(--blue), #2c6fd1); }
+  .team-card.active {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    outline: 4px solid var(--yellow);
+  }
+  .team-card .name {
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    margin-bottom: 5px;
+  }
+  .team-card .score {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+  }
+
+  /* ===== ВЫБОР УРОВНЯ ===== */
+  .levels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .level-card {
+    padding: 25px 15px;
+    border-radius: 25px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    border: none;
+    font-family: inherit;
+  }
+  .level-card:hover {
+    transform: translateY(-5px) rotate(-1deg);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  }
+  .level-card:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  .level-card.easy   { background: linear-gradient(135deg, var(--green), #2e8b3d); }
+  .level-card.medium { background: linear-gradient(135deg, var(--yellow), #f0b400); color: var(--dark); }
+  .level-card.hard   { background: linear-gradient(135deg, var(--pink), #e84393); }
+  .level-card .level-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+  .level-card .level-name { font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: bold; display: block; }
+  .level-card .level-points { font-size: clamp(0.9rem, 2vw, 1.1rem); margin-top: 5px; display: block; }
+
+  /* ===== ВОПРОС ===== */
+  .question-box {
+    background: linear-gradient(135deg, #fff3cd, #ffe8a1);
+    border: 4px solid var(--yellow);
+    border-radius: 25px;
+    padding: 25px;
+    margin: 20px 0;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+  .question-text {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    color: var(--dark);
+    font-weight: bold;
+    line-height: 1.4;
+  }
+  .question-meta {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: #666;
+  }
+
+  .answers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .answer-btn {
+    padding: 18px;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-weight: bold;
+    font-family: inherit;
+    border: 3px solid var(--blue);
+    background: white;
+    color: var(--dark);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .answer-btn:hover:not(:disabled) {
+    background: var(--blue);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4);
+  }
+  .answer-btn.correct {
+    background: var(--green) !important;
+    color: white !important;
+    border-color: #2e8b3d !important;
+    animation: pulse 0.5s ease;
+  }
+  .answer-btn.wrong {
+    background: #e74c3c !important;
+    color: white !important;
+    border-color: #c0392b !important;
+    animation: shake 0.5s ease;
+  }
+  .answer-btn:disabled { cursor: not-allowed; }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* ===== ОБРАТНАЯ СВЯЗЬ ===== */
+  .feedback {
+    text-align: center;
+    font-size: clamp(1.3rem, 3.5vw, 2rem);
+    font-weight: bold;
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  .feedback.correct {
+    background: linear-gradient(135deg, #d4edda, #a8e6a3);
+    color: #155724;
+  }
+  .feedback.wrong {
+    background: linear-gradient(135deg, #f8d7da, #f5a3a8);
+    color: #721c24;
+  }
+
+  /* ===== РЕЗУЛЬТАТЫ ===== */
+  .results-list {
+    margin: 25px 0;
+  }
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 25px;
+    margin-bottom: 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    font-weight: bold;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  }
+  .result-item.first {
+    background: linear-gradient(135deg, #ffd700, #ffa500);
+    transform: scale(1.05);
+    color: var(--dark);
+  }
+  .result-item.second { background: linear-gradient(135deg, var(--orange), #ff6b1a); }
+  .result-item.third  { background: linear-gradient(135deg, var(--blue), #2c6fd1); }
+
+  .trophy {
+    text-align: center;
+    font-size: 5rem;
+    margin: 20px 0;
+    animation: bounce 1.5s ease infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+
+  .praise-message {
+    text-align: center;
+    font-size: clamp(1.3rem, 3.5vw, 2rem);
+    font-weight: bold;
+    color: var(--dark);
+    padding: 20px;
+    background: linear-gradient(135deg, var(--yellow), #ffe066);
+    border-radius: 20px;
+    margin: 20px 0;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+
+  /* ===== ПЕРЕКЛЮЧАТЕЛЬ ЗВУКА ===== */
+  .sound-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: white;
+    border: 3px solid var(--blue);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+  }
+  .sound-toggle:hover { transform: scale(1.1); }
+
+  /* ===== АДАПТИВНОСТЬ ===== */
+  @media (max-width: 600px) {
+    .game-container { padding: 20px 15px; border-radius: 20px; }
+    .btn { padding: 12px 20px; min-height: 50px; }
+    .teams-panel { flex-direction: column; }
+    .sound-toggle { width: 42px; height: 42px; font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas" width="1273" height="593"></canvas>
+
+<div class="game-container">
+  <!-- Переключатель звука -->
+  <button class="sound-toggle" id="soundToggle" title="Вкл/выкл звук">🔊</button>
+
+  <!-- ========== ЭКРАН 1: ПРИВЕТСТВИЕ ========== -->
+  <div class="screen" id="screen-welcome">
+    <h1>🌲 Брейн-ринг 🦊</h1>
+    <p class="subtitle">«Животные леса» — проверь свои знания!</p>
+
+    <div class="input-group">
+      <label for="team1Name">🦁 Команда 1:</label>
+      <input type="text" id="team1Name" placeholder="Например: Лисята" maxlength="20">
+    </div>
+    <div class="input-group">
+      <label for="team2Name">🐻 Команда 2:</label>
+      <input type="text" id="team2Name" placeholder="Например: Волчата" maxlength="20">
+    </div>
+
+    <button class="btn btn-primary btn-block" id="startBtn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+        <path d="M8 5v14l11-7z"></path>
+      </svg>
+      Начать игру
+    </button>
+  </div>
+
+  <!-- ========== ЭКРАН 2: ВЫБОР УРОВНЯ ========== -->
+  <div class="screen active" id="screen-levels">
+    <h2>🎯 Выбери уровень риска!</h2>
+    <p class="subtitle" id="turnInfo">Ход команды: Волчата</p>
+
+    <div class="teams-panel" id="teamsPanelLevels"><div class="team-card team-0">
+      <div class="name">🦁 Лисята</div>
+      <div class="score">40 🌟</div>
+    </div><div class="team-card team-1 active">
+      <div class="name">🐻 Волчата</div>
+      <div class="score">0 🌟</div>
+    </div></div>
+
+    <div class="levels-grid">
+      <button class="level-card easy" data-level="easy" title="Осталось вопросов: 4">
+        <span class="level-icon">😊</span>
+        <span class="level-name">Лёгкий</span>
+        <span class="level-points">10 баллов</span>
+      </button>
+      <button class="level-card medium" data-level="medium" title="Осталось вопросов: 4">
+        <span class="level-icon">⭐</span>
+        <span class="level-name">Средний</span>
+        <span class="level-points">20 баллов</span>
+      </button>
+      <button class="level-card hard" data-level="hard" title="Осталось вопросов: 4">
+        <span class="level-icon">🔥</span>
+        <span class="level-name">Сложный</span>
+        <span class="level-points">30 баллов</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== ЭКРАН 3: ВОПРОС ========== -->
+  <div class="screen" id="screen-question">
+    <div class="teams-panel" id="teamsPanelQuestion"><div class="team-card team-0 active">
+      <div class="name">🦁 Лисята</div>
+      <div class="score">40 🌟</div>
+    </div><div class="team-card team-1">
+      <div class="name">🐻 Волчата</div>
+      <div class="score">0 🌟</div>
+    </div></div>
+
+    <div class="question-box">
+      <div class="question-text" id="questionText">Какая ночная птица может поворачивать голову почти вокруг себя?</div>
+      <div class="question-meta" id="questionMeta">Сложный • 30 баллов</div>
+    </div>
+
+    <div class="answers-grid" id="answersGrid"><button class="answer-btn" disabled="">Ворон</button><button class="answer-btn correct" disabled="">Сова</button><button class="answer-btn" disabled="">Орёл</button><button class="answer-btn" disabled="">Ястреб</button></div>
+
+    <div id="feedbackArea"><div class="feedback correct">✅ Правильно! +30 баллов команде «Лисята»</div></div>
+
+    <button class="btn btn-success btn-block" id="nextBtn" style="display: block;">
+      Дальше →
+    </button>
+  </div>
+
+  <!-- ========== ЭКРАН 4: РЕЗУЛЬТАТЫ ========== -->
+  <div class="screen" id="screen-results">
+    <div class="trophy">🏆</div>
+    <h1>Игра окончена!</h1>
+    <div class="results-list" id="resultsList"></div>
+    <div class="praise-message" id="praiseMessage"></div>
+    <button class="btn btn-pink btn-block" id="restartBtn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+        <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path>
+      </svg>
+      Сыграть снова
+    </button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   ДАННЫЕ ИГРЫ: 15 вопросов о животных леса для детей 7 лет
+   ========================================================= */
+const QUESTIONS = {
+  easy: [
+    { q: "Кто спит зимой в большой берлоге?", a: ["Медведь", "Заяц", "Белка", "Ёжик"], correct: 0 },
+    { q: "Какой зверёк очень любит грызть морковку?", a: ["Волк", "Заяц", "Лиса", "Барсук"], correct: 1 },
+    { q: "Кто носит иголки на спине, как букет?", a: ["Белка", "Ёжик", "Крот", "Мышка"], correct: 1 },
+    { q: "У какого зверя пушистый рыжий хвост-метёлка?", a: ["Лиса", "Заяц", "Медведь", "Волк"], correct: 0 },
+    { q: "Кто живёт в дупле и любит орешки?", a: ["Сова", "Белка", "Дятел", "Кукушка"], correct: 1 }
+  ],
+  medium: [
+    { q: "Кто из зверей меняет шубку на белую зимой?", a: ["Лиса", "Заяц-беляк", "Волк", "Медведь"], correct: 1 },
+    { q: "Кого называют «санитаром леса»?", a: ["Зайца", "Белку", "Волка", "Ежа"], correct: 2 },
+    { q: "Кто строит на реках деревянные плотины?", a: ["Выдра", "Бобр", "Нутрия", "Ондатра"], correct: 1 },
+    { q: "Какая птица лечит деревья, стуча по коре?", a: ["Ворона", "Сорока", "Дятел", "Сова"], correct: 2 },
+    { q: "У какого лесного зверя есть рога, как у коровы, но он не корова?", a: ["Лось", "Кабан", "Косуля и лось", "Медведь"], correct: 2 }
+  ],
+  hard: [
+    { q: "Какая птица не вьёт своё гнездо, а подкидывает яйца другим?", a: ["Сорока", "Кукушка", "Воробей", "Галка"], correct: 1 },
+    { q: "Кто из лесных зверей тоже впадает в спячку, как медведь?", a: ["Белка", "Ёж", "Заяц", "Лиса"], correct: 1 },
+    { q: "Какое животное умеет летать, но не является птицей?", a: ["Белка-летяга", "Летучая мышь", "Бабочка", "Шмель"], correct: 1 },
+    { q: "Какая ночная птица может поворачивать голову почти вокруг себя?", a: ["Ворон", "Сова", "Орёл", "Ястреб"], correct: 1 },
+    { q: "Как называется домик, который строит бобр?", a: ["Гнездо", "Нора", "Хатка", "Берлога"], correct: 2 }
+  ]
+};
+
+/* =========================================================
+   СОСТОЯНИЕ ИГРЫ
+   ========================================================= */
+let state = {
+  teams: [
+    { name: "Лисята", score: 0 },
+    { name: "Волчата", score: 0 }
+  ],
+  currentTeam: 0,
+  usedQuestions: { easy: [], medium: [], hard: [] },
+  currentQuestion: null,
+  currentLevel: null,
+  soundOn: true,
+  totalQuestions: 15
+};
+
+/* =========================================================
+   ЗВУКОВАЯ СИСТЕМА (Web Audio API — без внешних файлов)
+   ========================================================= */
+let audioCtx = null;
+
+// Инициализация аудио-контекста (нужен жест пользователя)
+function initAudio() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) { console.warn("Аудио недоступно"); }
+  }
+}
+
+// Воспроизведение тона
+function playTone(freq, duration, type = "sine", volume = 0.3, delay = 0) {
+  if (!state.soundOn || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+  gain.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + delay + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(audioCtx.currentTime + delay);
+  osc.stop(audioCtx.currentTime + delay + duration);
+}
+
+// Звук правильного ответа (короткий "динг")
+function playCorrectSound() {
+  playTone(880, 0.15, "sine", 0.3, 0);
+  playTone(1320, 0.25, "sine", 0.3, 0.1);
+}
+
+// Звук неправильного ответа (низкий "бзз")
+function playWrongSound() {
+  playTone(220, 0.2, "sawtooth", 0.2, 0);
+  playTone(180, 0.3, "sawtooth", 0.2, 0.15);
+}
+
+// ФАНФАРЫ — длинная мелодия для финала
+function playFanfare() {
+  if (!state.soundOn || !audioCtx) return;
+  // Мелодия: C-E-G-C (восходящая)
+  const notes = [
+    { f: 523, d: 0.25 },  // C
+    { f: 659, d: 0.25 },  // E
+    { f: 784, d: 0.25 },  // G
+    { f: 1047, d: 0.6 }   // высокий C
+  ];
+  let delay = 0;
+  notes.forEach(n => {
+    playTone(n.f, n.d, "triangle", 0.35, delay);
+    // Добавляем гармонику для богатства звука
+    playTone(n.f * 0.5, n.d, "sine", 0.15, delay);
+    delay += n.d * 0.8;
+  });
+  // Финальный аккорд
+  setTimeout(() => {
+    playTone(523, 1.0, "sine", 0.25, 0);
+    playTone(659, 1.0, "sine", 0.25, 0);
+    playTone(784, 1.0, "sine", 0.25, 0);
+    playTone(1047, 1.2, "sine", 0.3, 0);
+  }, delay * 1000);
+}
+
+// Аплодисменты (шумовой эффект)
+function playApplause() {
+  if (!state.soundOn || !audioCtx) return;
+  const duration = 2.5;
+  const bufferSize = audioCtx.sampleRate * duration;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  // Генерируем шум, похожий на хлопки
+  for (let i = 0; i < bufferSize; i++) {
+    const t = i / audioCtx.sampleRate;
+    // Амплитуда модулируется, чтобы звучало как серия хлопков
+    const env = (Math.sin(t * 15) + 1) * 0.5 * Math.exp(-t * 0.8);
+    data[i] = (Math.random() * 2 - 1) * env * 0.3;
+  }
+  const src = audioCtx.createBufferSource();
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "bandpass";
+  filter.frequency.value = 2000;
+  src.buffer = buffer;
+  gain.gain.value = 0.5;
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start();
+}
+
+/* =========================================================
+   КОНФЕТТИ (canvas, чистый JS)
+   ========================================================= */
+const confettiCanvas = document.getElementById("confettiCanvas");
+const ctx = confettiCanvas.getContext("2d");
+let confettiPieces = [];
+let confettiAnimId = null;
+
+function resizeCanvas() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+// Запуск конфетти (amount — количество частиц, duration — длительность в мс)
+function launchConfetti(amount = 80, duration = 3000) {
+  const colors = ["#ff8c42", "#4caf50", "#ffd93d", "#4a90e2", "#ff6b9d", "#9b59b6"];
+  for (let i = 0; i < amount; i++) {
+    confettiPieces.push({
+      x: Math.random() * confettiCanvas.width,
+      y: -20 - Math.random() * 100,
+      w: 6 + Math.random() * 8,
+      h: 10 + Math.random() * 10,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2 + Math.random() * 4,
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.2,
+      life: duration + Math.random() * 1000
+    });
+  }
+  if (!confettiAnimId) animateConfetti();
+}
+
+function animateConfetti() {
+  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  confettiPieces.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.1; // гравитация
+    p.rot += p.vr;
+    p.life -= 16;
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    ctx.restore();
+  });
+  // Удаляем старые частицы
+  confettiPieces = confettiPieces.filter(p => p.life > 0 && p.y < confettiCanvas.height + 50);
+
+  if (confettiPieces.length > 0) {
+    confettiAnimId = requestAnimationFrame(animateConfetti);
+  } else {
+    confettiAnimId = null;
+    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  }
+}
+
+/* =========================================================
+   ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ
+   ========================================================= */
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* =========================================================
+   ОТРИСОВКА ПАНЕЛИ КОМАНД
+   ========================================================= */
+function renderTeamsPanel(containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+  state.teams.forEach((team, i) => {
+    const card = document.createElement("div");
+    card.className = `team-card team-${i}${i === state.currentTeam ? " active" : ""}`;
+    card.innerHTML = `
+      <div class="name">${i === 0 ? "🦁" : "🐻"} ${team.name}</div>
+      <div class="score">${team.score} 🌟</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+/* =========================================================
+   ОБНОВЛЕНИЕ ДОСТУПНОСТИ УРОВНЕЙ
+   ========================================================= */
+function updateLevelsAvailability() {
+  document.querySelectorAll(".level-card").forEach(card => {
+    const level = card.dataset.level;
+    const used = state.usedQuestions[level].length;
+    const total = QUESTIONS[level].length;
+    if (used >= total) {
+      card.disabled = true;
+      card.title = "Все вопросы этого уровня уже заданы";
+    } else {
+      card.disabled = false;
+      card.title = `Осталось вопросов: ${total - used}`;
+    }
+  });
+}
+
+/* =========================================================
+   ПРОВЕРКА: ВСЕ ВОПРОСЫ ЗАДАНЫ?
+   ========================================================= */
+function allQuestionsUsed() {
+  return ["easy", "medium", "hard"].every(level =>
+    state.usedQuestions[level].length >= QUESTIONS[level].length
+  );
+}
+
+/* =========================================================
+   ЛОГИКА: ВЫБОР УРОВНЯ
+   ========================================================= */
+function selectLevel(level) {
+  state.currentLevel = level;
+  // Выбираем случайный неиспользованный вопрос этого уровня
+  const available = QUESTIONS[level]
+    .map((q, idx) => idx)
+    .filter(idx => !state.usedQuestions[level].includes(idx));
+  const qIdx = available[Math.floor(Math.random() * available.length)];
+  state.currentQuestion = { ...QUESTIONS[level][qIdx], index: qIdx };
+  state.usedQuestions[level].push(qIdx);
+  showQuestion();
+}
+
+/* =========================================================
+   ПОКАЗ ВОПРОСА
+   ========================================================= */
+function showQuestion() {
+  renderTeamsPanel("teamsPanelQuestion");
+  const q = state.currentQuestion;
+  const level = state.currentLevel;
+  const levelNames = { easy: "Лёгкий", medium: "Средний", hard: "Сложный" };
+  const levelPoints = { easy: 10, medium: 20, hard: 30 };
+
+  document.getElementById("questionText").textContent = q.q;
+  document.getElementById("questionMeta").textContent =
+    `${levelNames[level]} • ${levelPoints[level]} баллов`;
+
+  const grid = document.getElementById("answersGrid");
+  grid.innerHTML = "";
+  q.a.forEach((ans, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-btn";
+    btn.textContent = ans;
+    btn.addEventListener("click", () => handleAnswer(i, btn));
+    grid.appendChild(btn);
+  });
+
+  document.getElementById("feedbackArea").innerHTML = "";
+  document.getElementById("nextBtn").style.display = "none";
+
+  showScreen("screen-question");
+}
+
+/* =========================================================
+   ОБРАБОТКА ОТВЕТА
+   ========================================================= */
+function handleAnswer(selectedIdx, btnEl) {
+  const q = state.currentQuestion;
+  const isCorrect = selectedIdx === q.correct;
+  const levelPoints = { easy: 10, medium: 20, hard: 30 };
+
+  // Блокируем все кнопки
+  document.querySelectorAll(".answer-btn").forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add("correct");
+    if (i === selectedIdx && !isCorrect) b.classList.add("wrong");
+  });
+
+  const feedback = document.createElement("div");
+  feedback.className = "feedback " + (isCorrect ? "correct" : "wrong");
+
+  if (isCorrect) {
+    state.teams[state.currentTeam].score += levelPoints[state.currentLevel];
+    feedback.innerHTML = `✅ Правильно! +${levelPoints[state.currentLevel]} баллов команде «${state.teams[state.currentTeam].name}»`;
+    playCorrectSound();
+    launchConfetti(60, 2000); // небольшое конфетти
+  } else {
+    feedback.innerHTML = `❌ Неверно. Правильный ответ: <b>${q.a[q.correct]}</b>`;
+    playWrongSound();
+  }
+
+  document.getElementById("feedbackArea").innerHTML = "";
+  document.getElementById("feedbackArea").appendChild(feedback);
+
+  // Обновляем панель команд
+  renderTeamsPanel("teamsPanelQuestion");
+
+  // Показываем кнопку "Дальше"
+  const nextBtn = document.getElementById("nextBtn");
+  nextBtn.style.display = "block";
+  nextBtn.onclick = nextTurn;
+}
+
+/* =========================================================
+   СЛЕДУЮЩИЙ ХОД
+   ========================================================= */
+function nextTurn() {
+  // Проверяем, все ли вопросы заданы
+  if (allQuestionsUsed()) {
+    showResults();
+    return;
+  }
+  // Переключаем команду
+  state.currentTeam = (state.currentTeam + 1) % state.teams.length;
+  showLevelSelect();
+}
+
+/* =========================================================
+   ЭКРАН ВЫБОРА УРОВНЯ
+   ========================================================= */
+function showLevelSelect() {
+  renderTeamsPanel("teamsPanelLevels");
+  document.getElementById("turnInfo").textContent =
+    `Ход команды: ${state.teams[state.currentTeam].name}`;
+  updateLevelsAvailability();
+  showScreen("screen-levels");
+}
+
+/* =========================================================
+   ЭКРАН РЕЗУЛЬТАТОВ
+   ========================================================= */
+function showResults() {
+  // Сортируем команды по очкам
+  const sorted = [...state.teams].map((t, i) => ({ ...t, idx: i }))
+    .sort((a, b) => b.score - a.score);
+
+  const list = document.getElementById("resultsList");
+  list.innerHTML = "";
+  sorted.forEach((team, rank) => {
+    const item = document.createElement("div");
+    const classes = ["result-item"];
+    if (rank === 0) classes.push("first");
+    else if (rank === 1) classes.push("second");
+    else classes.push("third");
+    item.className = classes.join(" ");
+    const medal = rank === 0 ? "🥇" : rank === 1 ? "🥈" : "🥉";
+    item.innerHTML = `
+      <span>${medal} ${team.name}</span>
+      <span>${team.score} 🌟</span>
+    `;
+    list.appendChild(item);
+  });
+
+  // Похвала в зависимости от очков
+  const maxScore = Math.max(...state.teams.map(t => t.score));
+  const praise = document.getElementById("praiseMessage");
+  let msg = "";
+  if (maxScore >= 150) {
+    msg = "🌟 Вы — настоящие знатоки леса! Великолепно! 🌟";
+  } else if (maxScore >= 100) {
+    msg = "🎉 Отличная работа! Вы очень много знаете! 🎉";
+  } else if (maxScore >= 50) {
+    msg = "👍 Хороший результат! Вы молодцы! 👍";
+  } else {
+    msg = "🌱 Хорошая попытка! В следующий раз получится ещё лучше! 🌱";
+  }
+  praise.textContent = msg;
+
+  showScreen("screen-results");
+
+  // Длинное конфетти + фанфары + аплодисменты
+  setTimeout(() => {
+    launchConfetti(200, 5000);
+    playFanfare();
+    setTimeout(() => playApplause(), 800);
+  }, 300);
+}
+
+/* =========================================================
+   СТАРТ / РЕСТАРТ ИГРЫ
+   ========================================================= */
+function startGame() {
+  initAudio();
+  const name1 = document.getElementById("team1Name").value.trim() || "Лисята";
+  const name2 = document.getElementById("team2Name").value.trim() || "Волчата";
+  state.teams = [
+    { name: name1, score: 0 },
+    { name: name2, score: 0 }
+  ];
+  state.currentTeam = 0;
+  state.usedQuestions = { easy: [], medium: [], hard: [] };
+  state.currentQuestion = null;
+  state.currentLevel = null;
+  showLevelSelect();
+}
+
+function restartGame() {
+  document.getElementById("team1Name").value = "";
+  document.getElementById("team2Name").value = "";
+  showScreen("screen-welcome");
+}
+
+/* =========================================================
+   ОБРАБОТЧИКИ СОБЫТИЙ
+   ========================================================= */
+document.getElementById("startBtn").addEventListener("click", startGame);
+document.getElementById("restartBtn").addEventListener("click", restartGame);
+
+// Кнопки уровней
+document.querySelectorAll(".level-card").forEach(card => {
+  card.addEventListener("click", () => {
+    if (!card.disabled) selectLevel(card.dataset.level);
+  });
+});
+
+// Переключатель звука
+document.getElementById("soundToggle").addEventListener("click", (e) => {
+  initAudio();
+  state.soundOn = !state.soundOn;
+  e.currentTarget.textContent = state.soundOn ? "🔊" : "🔇";
+});
+
+// Enter в полях ввода = старт игры
+["team1Name", "team2Name"].forEach(id => {
+  document.getElementById(id).addEventListener("keypress", (e) => {
+    if (e.key === "Enter") startGame();
+  });
+});
+</script>
+
+</body></html>
